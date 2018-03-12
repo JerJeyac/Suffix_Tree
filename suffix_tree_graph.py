@@ -1,0 +1,78 @@
+#Visualization class for plotting Suffix tree
+#Requires GraphViz, suffix_tree_builder| Suffix_Builder, Suffix_Tree classes
+
+from suffix_tree_builder import SuffixNode, SuffixTree
+from graphviz import Digraph
+
+
+#Provides an interface for graphing Suffix_Trees with an interface for customizing plotting via python graphviz
+class SuffixGraph():
+
+    def __init__(self):
+        #Default style settings, refer to graph_attr,node_attr,edge_attr for customization, maybe set an interface for settings?
+        self._styles = {
+            'graph': {
+                'rankdir' : 'LR',
+                'label' : '',
+                'fontsize' : '16',
+                'size' : '5',
+                'fixedsize' : 'true'
+            },
+            'nodes' : {
+                'fontcolor': 'red',
+                'label': '',
+                'style': 'filled',
+                'fillcolor': 'red',
+                'fontsize': '1',
+                'shape' : 'circle',
+                'width' : '0.25'
+            }
+        }
+
+        self.graph = []
+
+    #Credit : http://matthiaseisen.com/articles/graphviz/
+    def apply_styles(self):
+            self.graph.graph_attr.update(
+                ('graph' in self.styles and self.styles['graph']) or {}
+            )
+            self.graph.node_attr.update(
+                ('nodes' in self.styles and self.styles['nodes']) or {}
+            )
+            self.graph.edge_attr.update(
+                ('edges' in self.styles and self.styles['edges']) or {}
+            )
+
+    #Builds graphviz graph from suffix_tree object
+    #TODO: Implement suffix linkages
+    def gen_suffix_graph(self,suffix_tree, **kwargs):
+
+        #TODO: Implement **kwargs structure
+        '''kwargs guide:
+            @filename: filename for graphviz visualization
+            @name: name of graph '''
+
+        dna = suffix_tree.dna
+        self._styles['graph']['label'] = dna
+        traversal = suffix_tree.traverse_tree()
+
+        self.graph = Digraph(filename='./graphs/'+dna+'_stree',name=dna+'_stree')
+
+        #Perform traversal and output tree shape
+        for _,edges,s_links in traversal:
+            if edges:
+                for edge in edges:
+                    self.graph.edge(str(edge[0]),str(edge[1]),label=(edge[2]))
+            if s_links:
+                self.graph.edge(str(edge[0]),str(s_links[0].node_id),style='dotted')
+
+    def view(self):
+        self.apply_styles()
+        self.graph.view()
+
+    @property
+    def styles(self):
+        return self._styles
+    @styles.setter
+    def styles(self,styles):
+        self._styles = styles
