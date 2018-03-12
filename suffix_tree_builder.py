@@ -140,13 +140,12 @@ class SuffixBuilder():
                 if (ap['node'] == root) and (ap['edge'] is not None):
                     ap['length'] -= 1
                     self.correct_edge(ap)
+                elif ap['node'].s_link:
+                    ap['node'] = ap['node'].s_link[0]
+                    self.canonize(ap)
                 else:
-                    if ap['node'].s_link:
-                        ap['node'] = ap['node'].s_link[0]
-                        self.canonize(ap)
-                    else:
-                         ap['node'] = root
-                         self.correct_edge(ap)
+                     ap['node'] = root
+                     self.correct_edge(ap)
 
                 r -= 1
 
