@@ -1,15 +1,12 @@
-#Visualization class for plotting Suffix tree
-#Requires GraphViz, suffix_tree_builder| Suffix_Builder, Suffix_Tree classes
 
 from suffix_tree_builder import SuffixNode, SuffixTree
 from graphviz import Digraph
 
-
-#Provides an interface for graphing Suffix_Trees with an interface for customizing plotting via python graphviz
+#Visualization class for plotting Suffix tree
 class SuffixGraph():
 
     def __init__(self):
-        #Default style settings, refer to graph_attr,node_attr,edge_attr for customization, maybe set an interface for settings?
+        #Default style settings
         self._styles = {
             'graph': {
                 'rankdir' : 'LR',
@@ -32,6 +29,7 @@ class SuffixGraph():
         self.graph = []
 
     #Credit : http://matthiaseisen.com/articles/graphviz/
+    #Applies style dictionary to Graph object
     def apply_styles(self):
             self.graph.graph_attr.update(
                 ('graph' in self.styles and self.styles['graph']) or {}
@@ -43,8 +41,7 @@ class SuffixGraph():
                 ('edges' in self.styles and self.styles['edges']) or {}
             )
 
-    #Builds graphviz graph from suffix_tree object
-    #TODO: Implement suffix linkages
+    #Generates Graphviz DiGraph object
     def gen_suffix_graph(self,suffix_tree, **kwargs):
 
         #TODO: Implement **kwargs structure
@@ -69,6 +66,8 @@ class SuffixGraph():
     def view(self):
         self.apply_styles()
         self.graph.view()
+
+    ## Properties
 
     @property
     def styles(self):

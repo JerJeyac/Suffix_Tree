@@ -12,7 +12,7 @@ class SuffixNode():
         self._s_link = []
         self._start, self._end = 0, 0
 
-        #Keep track of leaf nodes
+        #Keep track of leaf nodes for visualization
         self._curr_ind += 1
         self._total_nodes =+ 1
         self.suffix_index = self._curr_ind #Root, leaf, internal
@@ -42,27 +42,22 @@ class SuffixNode():
     def make_internal(self):
         self.suffix_index = -1
 
-    def is_internal(self):
-        return self.suffix_index < 0
-
     #Add baby
     def add_child(self,child_node,base):
-        #Attach a child node
         self.children[base] = child_node
 
     #Compute length of incoming edge
     def edge_distance(self):
-        #Returns distance of edge
         return self.end-self.start
 
-    #Properties
+    ##Properties
+
     @property
     def end(self):
-        #If not an internal node, return leaf_position
         if self.suffix_index >= 0:
             return self.leaf_pos
         else:
-            return self._end #internal node so end is defined explicitly
+            return self._end
     @end.setter
     def end(self, end):
         self._end = end
@@ -76,7 +71,6 @@ class SuffixNode():
 
     @property
     def s_link(self):
-        #Returns suffix link if exists otherwise self
         if self._s_link is not None:
             return self._s_link
         else: return []
@@ -91,7 +85,6 @@ class SuffixNode():
 #Builder returns Suffix_Tree class
 class SuffixBuilder():
 
-    #Constructor
     def __init__(self,dna):
         self.string = dna + '$' #string sequence
 
@@ -105,12 +98,11 @@ class SuffixBuilder():
         ap = {'node': root, 'edge': None, 'length' : 0}
         step = -1
 
-
+        #Iterate input string
         while SuffixNode.leaf_pos < len(self.string):
 
-            #Iterate input string
             base = self.string[SuffixNode.leaf_pos]
-            SuffixNode.leaf_pos += 1 #RULE 1
+            SuffixNode.leaf_pos += 1
             r += 1
             step += 1
             jump_node = [None]
@@ -145,7 +137,6 @@ class SuffixBuilder():
                         jump_node[0].s_link.append(ap['node'].children[ap['edge']])
                     jump_node[0] = ap['node'].children[ap['edge']]
 
-                #Post-root node routine
                 if (ap['node'] == root) and (ap['edge'] is not None):
                     ap['length'] -= 1
                     self.correct_edge(ap)
@@ -182,70 +173,53 @@ class SuffixBuilder():
 
         while overhang > 0:
 
-            #Update node
             ap['node'] = ap['node'].children[sc_substring]
-
-            #Set new edge target
             sc_length = overhang
             sc_substring = self.string[SuffixNode.leaf_pos - sc_length - 1]
-
-            #Compute overhang
             overhang = sc_length - ap['node'].children[sc_substring].edge_distance()
 
         #Post traversal clean-up
         ap['length'] = sc_length
-
         if ap['length'] == 0:
             ap['edge'] = None
         else: ap['edge'] = sc_substring
 
+    #TODO: Test canonize explicitly
     def canonize(self,ap):
-        #Edge correction
-        #If empty anyway don't canonize
         if ap['length'] == 0: return
 
         start = ap['node'].children[ap['edge']].start
         delta = ap['length'] - ap['node'].children[ap['edge']].edge_distance()
-        #Main traversal loop
         while delta > 0:
             ap['node'] = ap['node'].children[ap['edge']]
             ap['length'] = delta
             start += ap['node'].edge_distance()
             delta = ap['length'] - ap['node'].children[ap['edge']].edge_distance()
-        #Edge clean
         if ap['length'] == 0: ap['edge'] = None
 
+    #Injects node at active point
     def split_edge(self,ap,base):
 
-        #This node breaks the edge
         split_node = SuffixNode()
         split_node.make_internal()
-
-        #Fix start/end of split node
         split_node.start = ap['node'].children[ap['edge']].start
         split_node.end = ap['node'].children[ap['edge']].start + ap['length']
-
-        #Key for character right after split
         split_key = self.string[split_node.start + ap['length']]
 
-        #Becomes new leaf from split
         new_leaf = SuffixNode()
         new_leaf.start = SuffixNode.leaf_pos - 1
         new_key = base
 
-        #Old active child of active node gets start shifted up to after split
         ap['node'].children[ap['edge']].start += ap['length']
 
-        #Split node grabs the rest of the split edge as well as new leaf
         split_node.children[split_key] = ap['node'].children[ap['edge']]
         split_node.children[new_key] = new_leaf
 
-        #Active node replaces its own child with split node
         ap['node'].children[ap['edge']] = split_node
 
+    #Compares base to children
     def compare_base_ap(self,ap,base):
 
-        #If is None you need to compare the base
         if (ap['edge'] in ap['node'].children):
             return base == self.string[ap['node'].children[ap['edge']].start + ap['length']]
         elif(base in ap['node'].children):
@@ -253,6 +227,7 @@ class SuffixBuilder():
 
         return False
 
+    #Debugging func
     def get_edge(self,node):
         return self.string[node.start:node.end]
 
@@ -263,28 +238,20 @@ class SuffixTree():
         self.root = root
         self.dna = dna
 
-    #Recursive generator implemented with Stack logic
-    #TODO: Implement suffix links with dotted arrows!
+    #Stack depth-first traversal
     def traverse_tree(self):
         stack = [self.root]
 
         while stack:
             node = stack.pop()
             edge_tups = []
-            #Get children
             for _,child in node.children.items():
 
-                #Depth first traversal
                 stack.append(child)
-
-                #return edge-tuples with edge string
                 edge_tups.append((
                 node.node_id,
                 child.node_id,
-                self.dna[child.start:child.end] #iGraph
+                self.dna[child.start:child.end]
                 ))
-
-            #Constrained edges prevent modification, constraint attribute!
-
 
             yield node,edge_tups,node.s_link
