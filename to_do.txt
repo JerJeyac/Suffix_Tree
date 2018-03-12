@@ -1,11 +1,12 @@
-Fix Canonization and Edge Correction
-
 Generalization of Suffix Tree
   1. Implement pruning routine for removing overflow from one string onto the next
   2. Implement a tagging system so any number of strings can be added on without running out of unique terminators
 
 Querying Suffix Tree
   1. LCS routine and visualization through edge attributes on Graphviz
+  
+Explicitly test canonization routine
+
  
   
   
